@@ -10,7 +10,7 @@ class NodeEnvExtension {
   
   String downloadBaseUrl = 'http://nodejs.org/dist'
   
-  String defaultModules = ''
+  String defaultGlobalModules = ''
   
   String npmDownloadBaseUrl = 'https://codeload.github.com/npm/npm/zip'
   

@@ -28,7 +28,7 @@ class NodePlugin implements Plugin<Project> {
       }
       // setExecutable(project)
       // changeToDefaultGemSource(project)
-      //installDefaultGems(project)
+      installDefaultGlobalModules(project)
     }
     
     project.task('reinstallNode') << {
@@ -284,15 +284,7 @@ class NodePlugin implements Plugin<Project> {
   installGems(project, gems)
   }
   
-  def installGems(project, gems) {
-  def cmd = "-S gem install ${gems} -N -V"
-  def executable = getRubyExecutableWithPath(project)
-  project.ant.exec(executable: executable) {
-  env(key: 'HOME', value: project.rubyEnv.rubyHome)
-  env(key: 'JRUBY_HOME', value: project.rubyEnv.rubyHome)
-  arg(line: cmd)      
-  } 
-  }
+
   
   def replaceGemfileSource(project, gemfileWithPath, source) {
   def contents = new File(gemfileWithPath).getText()
@@ -329,6 +321,22 @@ class NodePlugin implements Plugin<Project> {
   def getNodeExecutableWithPath(project) {
     def executable = isWindows() ? "node.exe" : "node"
     "${project.nodeEnv.getNodeHome()}/${executable}"
+  }
+  
+  def getNpmExecutableWithPath(project) {
+    def executable = isWindows() ? "npm.cmd" : "npm"
+    "${project.nodeEnv.getNodeHome()}/${executable}"
+  }  
+  
+  def installDefaultGlobalModules(project) {
+    final modules = project.nodeEnv.defaultGlobalModules
+    if (null != modules && 0 < modules.length()) {
+      def cmd = 'install ' + modules + ' -g'
+      def executable = getNpmExecutableWithPath(project)
+      project.ant.exec(dir: project.nodeEnv.getNodeHome(), executable: executable) {
+        arg(line: cmd)      
+      } 
+    }
   }  
   
   // def exec(project, cmd) {
