@@ -5,12 +5,12 @@ import org.gradle.api.Project
 class NodeEnvExtension {
   
   String ver = '0.10.35'  
-    
-  String extractPath = 'node'
-    
-  String downloadBaseUrl = 'http://nodejs.org/dist/'
   
-  String defaultModules //= 'rubygems-update rake bundler'
+  String installPath = 'node'
+  
+  String downloadBaseUrl = 'http://nodejs.org/dist'
+  
+  String defaultModules = ''
   
   String npmDownloadBaseUrl = 'https://codeload.github.com/npm/npm/zip'
   
@@ -19,14 +19,15 @@ class NodeEnvExtension {
   //
   Project project
   
-  def getExtractPath() {
-    if (null == extractPath || 0 == extractPath.length()) {
+  def getInstallPath() {
+    if (null == installPath || 0 == installPath.length()) {
       return project.projectDir.getAbsolutePath()        
     }
-    new File(project.projectDir, extractPath).getAbsolutePath()
+    new File(project.projectDir, installPath).getAbsolutePath()
   }  
-
+  
   def getNodeHome() {
-    getExtractPath() + '/' + ver
+    getInstallPath() + '/' + ver
   }  
 }
+
