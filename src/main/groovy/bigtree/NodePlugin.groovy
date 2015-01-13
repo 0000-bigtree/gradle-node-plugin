@@ -25,6 +25,8 @@ class NodePlugin implements Plugin<Project> {
       description 'Install Node'
       if(isWindows()) {
         installNodeOnWindows(project) 
+      }else if(isOsX()) {
+        installNodeOnOsX(project)
       }
       // setExecutable(project)
       // changeToDefaultGemSource(project)
@@ -179,6 +181,49 @@ class NodePlugin implements Plugin<Project> {
     }    */    
   }
   
+  def installNodeOnOsX(project) {
+    if(is32Arch(project.ant)) {
+      throw new UnsupportedOperationException('DO NOT support 32 bit arch')
+    }
+    
+    final ant = project.ant 
+    final nodeEnv = project.nodeEnv
+    final tmpPath = nodeEnv.installPath + '/tmp'
+    ant.mkdir(dir: tmpPath)
+    
+    final fileName = "node-v${nodeEnv.ver}-darwin-x64.tar.gz"
+    def nodeUrl = nodeEnv.downloadBaseUrl + '/v' + nodeEnv.ver + '/' + fileName
+
+    // 下载到临时目录，如果文件不存在
+    def nodeName = nodeEnv.ver + '-' + nodeUrl.split('/')[-1]
+    final nodeDest = "${tmpPath}/${nodeName}"
+    if (!project.file(nodeDest).exists()) {
+      ant.get(src: nodeUrl, dest: nodeDest, verbose: true)
+    }
+    final npmDest = "${tmpPath}/npm-${nodeEnv.npmVer}.zip"
+    if (!project.file(npmDest).exists()) {
+      def npmUrl = nodeEnv.npmDownloadBaseUrl + '/v' + nodeEnv.npmVer
+      ant.get(src: npmUrl, dest: npmDest, verbose: true)
+    }
+    
+    // 放置到 Node Home
+    final nodeHome = nodeEnv.getNodeHome()
+    nodeName = nodeName.split('-')[-1]
+    ant.gunzip(src: nodeDest)   
+    ant.untar(src: nodeDest.replaceAll('.gz', ''), dest: nodeEnv.installPath)
+    ant.move(file: nodeEnv.installPath + '/' + fileName.replaceAll('.tar.gz', ''), tofile: nodeHome)
+    ant.unzip(src: npmDest, dest: tmpPath)
+    
+    // 设置可执行权限
+    setExecutable(project)        
+    
+    // 安装npm
+    def executable = getNodeExecutableWithPath(project)
+    project.ant.exec(dir: "${tmpPath}/npm-${nodeEnv.npmVer}", executable: executable) {
+      arg(line: 'cli.js install -g')
+    }     
+  }
+  
   def installNodeOnWindows(project) {
     final ant = project.ant 
     final nodeEnv = project.nodeEnv
@@ -212,7 +257,7 @@ class NodePlugin implements Plugin<Project> {
     nodeName = nodeName.split('-')[-1]
     ant.copy(file: nodeDest, tofile: "${nodeHome}/${nodeName}")   
     ant.unzip(src: npmDest, dest: tmpPath)
-    
+
     // 安装npm
     def executable = getNodeExecutableWithPath(project)
     project.ant.exec(dir: "${tmpPath}/npm-${nodeEnv.npmVer}", executable: executable) {
@@ -242,16 +287,7 @@ class NodePlugin implements Plugin<Project> {
   dest: project.rubyEnv.extractPath)           
   }
   }
-  
-  // *nix下，要设置这些脚本的可执行权限
-  def setExecutable(project) {
-  def cmd = "500 ast gem irb jgem jirb jirb_swing jruby jruby.bash jruby.sh jrubyc rake rdoc ri testrb"
-  project.ant.exec(dir: "${project.rubyEnv.rubyHome}/bin", 
-  executable: 'chmod', 
-  osfamily: 'unix') {
-  arg(line: cmd)      
-  }    
-  }  
+
   
   // 添加 Gem 源 URL
   def addOrRemoveGemSource(project, isAdd, source) {
@@ -318,8 +354,19 @@ class NodePlugin implements Plugin<Project> {
 
   */
   
+  
+  // *nix下，要设置这些脚本的可执行权限
+  def setExecutable(project) {
+    def cmd = "500 node"
+    project.ant.exec(dir: "${project.nodeEnv.getNodeHome()}/bin", 
+    executable: 'chmod', 
+    osfamily: 'unix') {
+      arg(line: cmd)      
+    }    
+  }    
+  
   def getNodeExecutableWithPath(project) {
-    def executable = isWindows() ? "node.exe" : "node"
+    def executable = isWindows() ? "node.exe" : "bin/node"
     "${project.nodeEnv.getNodeHome()}/${executable}"
   }
   
