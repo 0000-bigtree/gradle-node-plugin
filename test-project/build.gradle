@@ -1,0 +1,29 @@
+
+buildscript {  
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+  }
+    
+  dependencies {
+    classpath "bigtree:nodePlugin:0.1.0"
+  }
+}
+
+apply plugin: 'bigtree.node'
+
+nodeEnv {
+  ver = '0.10.35'
+  downloadBaseUrl = 'http://nodejs.org/dist'
+  
+  npmVer = '2.1.18'
+  defaultGlobalModules = 'underscore supervisor coffee-script node-webkit-builder'
+}
+
+nodeProject {
+  isNodeWebkitProject = true
+  nodeWebkitVer = '4.2.0.rc2'  
+  defaultModules = ''
+}
+
