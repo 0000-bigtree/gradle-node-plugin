@@ -14,7 +14,7 @@ class NodeEnvExtension {
   
   String npmDownloadBaseUrl = 'https://codeload.github.com/npm/npm/zip'
   
-  String npmVer = '2.1.17'
+  String npmVer = '2.1.18'
   
   //
   Project project

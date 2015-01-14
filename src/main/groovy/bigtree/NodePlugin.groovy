@@ -25,8 +25,11 @@ class NodePlugin implements Plugin<Project> {
       description 'Install Node'
       if(isWindows()) {
         installNodeOnWindows(project) 
-      }else if(isOsX()) {
+      } else if(isOsX()) {
         installNodeOnOsX(project)
+      } else if(isLinux()) {        
+      } else {
+        throw new UnsupportedOperationException('DO NOT support this platform')        
       }
       // setExecutable(project)
       // changeToDefaultGemSource(project)
@@ -46,6 +49,30 @@ class NodePlugin implements Plugin<Project> {
       description 'Uninstall Node, will delete installed Node'        
       deleteRubyHome(project)    
     }
+    
+    project.task('exec') << {  
+      if (project.hasProperty('cmds')) {
+        def cmds = project.cmds
+        cmds.split(';').each {
+          def cmd = "${it}"
+          exec(project, cmd)
+        }          
+      }
+    }
+    
+    project.task('npm') << {
+      def args = project.hasProperty('args') ? project.args : ''
+      if (null == args || 0 >= args.length()) {
+        args = 'list -g'
+      }
+      def cmd = "${args}"
+      def executable = getNpmExecutableWithPath(project)
+      project.ant.exec(dir: project.nodeEnv.getNodeHome(), 
+                       executable: executable) {
+                         arg(line: cmd)      
+      }
+    }     
+    
     /*    
     project.task('addOfficialGemSource') << {
     addOrRemoveGemSource(project, true, project.rubyEnv.officialGemSource)    
@@ -161,14 +188,7 @@ class NodePlugin implements Plugin<Project> {
     exec(project, cmd)
     }      
     
-    project.task('gem') << {
-    def args = project.hasProperty('args') ? project.args : ''
-    if (null == args || 0 >= args.length()) {
-    args = 'list --local'
-    }
-    def cmd = "-S gem ${args}"
-    exec(project, cmd)
-    }      
+ 
     
     project.task('exec') << {  
     if (project.hasProperty('cmds')) {
@@ -183,7 +203,7 @@ class NodePlugin implements Plugin<Project> {
   
   def installNodeOnOsX(project) {
     if(is32Arch(project.ant)) {
-      throw new UnsupportedOperationException('DO NOT support 32 bit arch')
+      throw new UnsupportedOperationException('DO NOT support darwin-x86')
     }
     
     final ant = project.ant 
@@ -230,7 +250,7 @@ class NodePlugin implements Plugin<Project> {
     final tmpPath = nodeEnv.installPath + '/tmp'
     ant.mkdir(dir: tmpPath)
     
-    def nodeUrl = nodeEnv.downloadBaseUrl + '/v' + nodeEnv.ver + '/'
+    def nodeUrl = nodeEnv.downloadBaseUrl + '/v' + nodeEnv.ver
     // 32位
     if(is32Arch(project.ant)) {
       nodeUrl = "${nodeUrl}/node.exe"
@@ -365,6 +385,11 @@ class NodePlugin implements Plugin<Project> {
     }    
   }    
   
+  def getExecutableWithPath(project, cmd) {
+    def executable = isWindows() ? "${cmd}.cmd" : "bin/${cmd}"
+    "${project.nodeEnv.getNodeHome()}/${executable}"
+  }
+  
   def getNodeExecutableWithPath(project) {
     def executable = isWindows() ? "node.exe" : "bin/node"
     "${project.nodeEnv.getNodeHome()}/${executable}"
@@ -386,14 +411,18 @@ class NodePlugin implements Plugin<Project> {
     }
   }  
   
-  // def exec(project, cmd) {
-  //   def executable = getNodeExecutableWithPath(project)
-  //   project.ant.exec(dir: project.rubyProject.nameWithPath, executable: executable) {
-  //     env(key: 'HOME', value: project.rubyEnv.rubyHome)
-  //     env(key: 'JRUBY_HOME', value: project.rubyEnv.rubyHome)
-  //     arg(line: cmd)
-  //   }    
-  // }
+  def exec(project, cmd) {
+    final cmdWithArgs = cmd.split()
+    def args = ''
+    if (1 < cmdWithArgs.length) {
+      args = cmdWithArgs[1..-1].join(' ')
+    }
+    def executable = getExecutableWithPath(project, cmdWithArgs[0])
+    project.ant.exec(dir: project.nodeEnv.getNodeHome(), 
+                     executable: executable) {
+                       arg(line: args)
+    }    
+  }
   
   static isWindows() {
     Os.isFamily(Os.FAMILY_WINDOWS)
