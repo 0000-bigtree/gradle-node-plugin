@@ -110,11 +110,6 @@ class NodePlugin implements Plugin<Project> {
     if (!project.file(nodeDest).exists()) {
       ant.get(src: nodeUrl, dest: nodeDest, verbose: true)
     }
-    final npmDest = "${tmpPath}/npm-${nodeEnv.npmVer}.zip"
-    if (!project.file(npmDest).exists()) {
-      def npmUrl = nodeEnv.npmDownloadBaseUrl + '/v' + nodeEnv.npmVer
-      ant.get(src: npmUrl, dest: npmDest, verbose: true)
-    }
     
     // 放置到 Node Home
     final nodeHome = nodeEnv.getNodeHome()
@@ -122,16 +117,23 @@ class NodePlugin implements Plugin<Project> {
     ant.gunzip(src: nodeDest)   
     ant.untar(src: nodeDest.replaceAll('.gz', ''), dest: nodeEnv.installPath)
     ant.move(file: nodeEnv.installPath + '/' + fileName.replaceAll('.tar.gz', ''), tofile: nodeHome)
-    ant.unzip(src: npmDest, dest: tmpPath)
-    
-    // 设置可执行权限
-    setExecutable(project)        
     
     // 安装npm
-    def executable = getNodeExecutableWithPath(project)
-    project.ant.exec(dir: "${tmpPath}/npm-${nodeEnv.npmVer}", executable: executable) {
-      arg(line: 'cli.js install -g')
-    }     
+    def cmd = "npm"
+    project.ant.exec(dir: "${project.nodeEnv.getNodeHome()}/bin", 
+    executable: 'rm', 
+    osfamily: 'unix') {
+      arg(line: cmd)      
+    }
+    cmd = "-s ../lib/node_modules/npm/bin/npm-cli.js npm "
+    project.ant.exec(dir: "${project.nodeEnv.getNodeHome()}/bin", 
+    executable: 'ln', 
+    osfamily: 'unix') {
+      arg(line: cmd)      
+    }    
+    
+    // 设置可执行权限
+    setExecutable(project)      
   }
   
   def installNodeOnWindows(project) {
@@ -177,12 +179,12 @@ class NodePlugin implements Plugin<Project> {
   
   // *nix下，要设置这些脚本的可执行权限
   def setExecutable(project) {
-    def cmd = "500 node"
+    def cmd = "500 node npm"
     project.ant.exec(dir: "${project.nodeEnv.getNodeHome()}/bin", 
     executable: 'chmod', 
     osfamily: 'unix') {
       arg(line: cmd)      
-    }    
+    }     
   }    
   
   def getExecutableWithPath(project, cmd) {
@@ -196,7 +198,7 @@ class NodePlugin implements Plugin<Project> {
   }
   
   def getNpmExecutableWithPath(project) {
-    def executable = isWindows() ? "npm.cmd" : "npm"
+    def executable = isWindows() ? "npm.cmd" : "bin/npm"
     "${project.nodeEnv.getNodeHome()}/${executable}"
   }  
   
