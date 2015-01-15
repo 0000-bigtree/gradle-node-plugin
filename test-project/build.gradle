@@ -18,12 +18,13 @@ nodeEnv {
   downloadBaseUrl = 'http://nodejs.org/dist'
   
   npmVer = '2.1.18'
-  defaultGlobalModules = 'underscore supervisor coffee-script node-webkit-builder'
+  defaultGlobalModules = 'grunt bower coffee-script'
 }
 
 nodeProject {
-  isNodeWebkitProject = true
-  nodeWebkitVer = '4.2.0.rc2'  
-  defaultModules = ''
+  nameWithPath = ''
+  isNwJsProject = true
+  nwJsVer = '0.11.5'  
+  defaultModules = 'log4js ejs jade'
 }
 
