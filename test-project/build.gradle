@@ -1,4 +1,5 @@
-
+// gradle -iS exec -Pcmds="nwbuild -p win32 -v 0.11.5 app"
+// gradle -iS exec -Pcmds="nwbuild -p win32 -r -v 0.11.5 app"
 buildscript {  
   repositories {
     mavenLocal()
@@ -25,6 +26,6 @@ nodeProject {
   nameWithPath = ''
   isNwJsProject = true
   nwJsVer = '0.11.5'  
-  defaultModules = 'log4js ejs jade'
+  defaultModules = 'log4js ejs'
 }
 
