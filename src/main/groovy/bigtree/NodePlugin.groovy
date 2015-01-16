@@ -56,6 +56,7 @@ class NodePlugin implements Plugin<Project> {
       def executable = getNpmExecutableWithPath(project)
       project.ant.exec(dir: project.nodeProject.nameWithPath, 
                        executable: executable) {
+                         env(key: 'HOME', value: project.nodeEnv.getNodeHome())
                          arg(line: cmd)      
       }
     } 
@@ -87,6 +88,22 @@ class NodePlugin implements Plugin<Project> {
       
       if (0 < modules.length()) {
         exec(project, project.nodeProject.nameWithPath, ('npm install ' + modules + ' --save'))
+      }
+      
+      final bowerrc = new File(project.nodeProject.nameWithPath, ".bowerrc")
+      if (!bowerrc.exists()) {
+        bowerrc << """{
+  "directory": "bower_components"        
+  "json": "bower.json"
+}
+"""        
+      }
+      if (null != project.nodeEnv.defaultGlobalModules 
+        && project.nodeEnv.defaultGlobalModules.contains('bower')) {
+        final bowerjson = new File(project.nodeProject.nameWithPath, "bower.json")
+        if (!bowerjson.exists()) {
+          bowerjson << generateBowerJson()
+        }      
       }
     }    
   }
@@ -222,6 +239,7 @@ class NodePlugin implements Plugin<Project> {
     def executable = getExecutableWithPath(project, cmdWithArgs[0])
     project.ant.exec(dir: path, 
                      executable: executable) {
+                       env(key: 'HOME', value: project.nodeEnv.getNodeHome())                       
                        arg(line: args)
     }    
   }
@@ -235,6 +253,10 @@ class NodePlugin implements Plugin<Project> {
       throw new UnsupportedOperationException('DO NOT support this platform')        
     } else {
       throw new UnsupportedOperationException('DO NOT support this platform')        
+    }
+    final npmrc = new File(project.nodeEnv.getNodeHome(), ".npmrc")
+    if (!npmrc.exists()) {
+      npmrc << ''
     }
     installDefaultGlobalModules(project)
   }
@@ -261,6 +283,22 @@ class NodePlugin implements Plugin<Project> {
   
   static is32Arch(ant) {
     'x86' == ant.properties['os.arch']
+  }
+  
+  static generateBowerJson() {
+"""{
+  "name": "TODOProjectName",
+  "version": "0.0.1",
+  "dependencies": {    
+    "underscore": "~1.7.0",
+    "jquery": "~2.1.3",
+
+    "bootstrap": "~3.3.1",
+    "bootswatch": "~3.3.1",
+    "font-awesome": "~4.2.0"
+  }
+}
+"""
   }
   
   // 生成 package.json 文件内容
