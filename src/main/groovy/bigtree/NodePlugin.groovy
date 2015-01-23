@@ -190,7 +190,7 @@ class NodePlugin implements Plugin<Project> {
     // 安装npm
     def executable = getNodeExecutableWithPath(project)
     project.ant.exec(dir: "${tmpPath}/npm-${nodeEnv.npmVer}", executable: executable) {
-      arg(line: 'cli.js install -g')
+      arg(line: 'cli.js install npm -g')
     }     
   }   
   

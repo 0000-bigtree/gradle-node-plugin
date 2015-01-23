@@ -18,7 +18,7 @@ nodeEnv {
   ver = '0.10.35'
   downloadBaseUrl = 'http://nodejs.org/dist'
   
-  npmVer = '2.1.18'
+  npmVer = '2.2.0'
   defaultGlobalModules = 'grunt bower coffee-script'
 }
 
