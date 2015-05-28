@@ -15,17 +15,15 @@ buildscript {
 apply plugin: 'bigtree.node'
 
 nodeEnv {
-  ver = '0.10.35'
+  ver = '0.12.4'
   downloadBaseUrl = 'http://nodejs.org/dist'
   
-  npmVer = '2.2.0'
-  defaultGlobalModules = 'grunt bower coffee-script'
+  npmVer = '2.10.1'
+  defaultGlobalModules = 'gulp'
 }
 
 nodeProject {
-  nameWithPath = ''
-  isNwJsProject = true
-  nwJsVer = '0.11.5'  
-  defaultModules = 'log4js ejs'
+  nameWithPath = '.'
+  defaultModules = 'log4js gulp'
 }
 

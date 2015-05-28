@@ -7,3 +7,5 @@ build
 private
 .nb-gradle-properties
 catalog.xml
+.idea
+*.iml
