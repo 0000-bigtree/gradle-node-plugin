@@ -195,15 +195,16 @@ class NodePlugin implements Plugin<Project> {
 
     // 激活和去激活 node 环境的 Windows 批处理脚本
     final activateScript = new File(project.nodeProject.nameWithPath, "activate.cmd")
+    final nodeHomePath = new File(project.nodeEnv.nodeHome).getCanonicalPath()
+    final nodeProjectPath = new File(project.nodeProject.nameWithPath).getCanonicalPath()
+
     if (!activateScript.exists()) {
-      activateScript << """@SET CURRENT=%~dp0
-@SET CURRENT_PATH=%CURRENT:~0,-1%
-@IF DEFINED _OLD_PATH (
+      activateScript << """@IF DEFINED _OLD_PATH (
     SET "PATH=%_OLD_PATH%"
 ) ELSE (
     SET "_OLD_PATH=%PATH%"
 )
-@SET "PATH=%CURRENT_PATH%\\node\\${nodeEnv.ver};%PATH%"
+@SET "PATH=${nodeProjectPath}\\node_modules\\.bin;${nodeHomePath};%PATH%"
 """
     }
     final deactivate = new File(project.nodeProject.nameWithPath, "deactivate.cmd")
