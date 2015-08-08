@@ -4,7 +4,7 @@ import org.gradle.api.Project
 
 class NodeEnvExtension {
   
-  String ver = '0.12.4'
+  String ver = '0.12.7'
   
   String installPath = 'node'
   
@@ -14,7 +14,7 @@ class NodeEnvExtension {
   
   String npmDownloadBaseUrl = 'https://codeload.github.com/npm/npm/zip'
   
-  String npmVer = '2.10.1'
+  String npmVer = '2.13.4'
   
   //
   Project project
